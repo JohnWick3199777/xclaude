@@ -37,16 +37,16 @@ No changes to your workflow — just run `claude` as normal and every action is 
 
 ## Install
 
+**One-line install (Recommended):**
 ```bash
-cargo build --release
-cp target/release/xclaude /opt/homebrew/bin/xclaude   # or anywhere on PATH
-xclaude install   # creates ~/.local/bin/claude → xclaude symlink
+curl -sSL https://raw.githubusercontent.com/JohnWick3199777/xclaude/master/install.sh | bash
 ```
 
-Make sure `~/.local/bin` is first in your PATH:
-
+Alternatively, you can clone and run the interactive setup manually:
 ```bash
-export PATH="$HOME/.local/bin:$PATH"   # add to ~/.zshrc
+git clone https://github.com/JohnWick3199777/xclaude.git
+cd xclaude
+./install.sh
 ```
 
 ## Usage
