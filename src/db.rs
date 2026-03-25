@@ -328,31 +328,36 @@ pub(crate) fn print_db_status() {
     }
 
     println!("\n=== AGENTS ===");
-    println!("{:<36} | {:<36} | {:<10} | {:<10} | {}", "AGENT ID", "PARENT ID", "IN TOKENS", "OUT TOKENS", "STARTED AT");
-    println!("{:-<115}", "-");
-    if let Ok(mut stmt) = conn.prepare("SELECT agent_id, parent_agent_id, input_tokens, output_tokens, started_at FROM agents WHERE session_id IN (SELECT session_id FROM sessions WHERE ended_at IS NULL) ORDER BY started_at DESC") {
+    println!("{:<36} | {:<36} | {:<10} | {}", "AGENT ID", "PARENT ID", "CTX SIZE", "STARTED AT");
+    println!("{:-<100}", "-");
+    if let Ok(mut stmt) = conn.prepare(
+        "SELECT a.agent_id, a.parent_agent_id, \
+                (SELECT t.ctx_before FROM tools t WHERE t.agent_id=a.agent_id ORDER BY t.called_at DESC LIMIT 1), \
+                a.started_at \
+         FROM agents a \
+         WHERE a.session_id IN (SELECT session_id FROM sessions WHERE ended_at IS NULL) \
+         ORDER BY a.started_at DESC"
+    ) {
         if let Ok(rows) = stmt.query_map([], |row| {
             Ok((
                 row.get::<_, String>(0)?,
                 row.get::<_, Option<String>>(1)?,
                 row.get::<_, Option<i64>>(2)?,
-                row.get::<_, Option<i64>>(3)?,
-                row.get::<_, Option<String>>(4)?,
+                row.get::<_, Option<String>>(3)?,
             ))
         }) {
             for row in rows.flatten() {
-                println!("{:<36} | {:<36} | {:<10} | {:<10} | {}",
+                println!("{:<36} | {:<36} | {:<10} | {}",
                     row.0,
                     row.1.unwrap_or_else(|| "-".to_string()),
                     row.2.map(|v| v.to_string()).unwrap_or_else(|| "-".to_string()),
-                    row.3.map(|v| v.to_string()).unwrap_or_else(|| "-".to_string()),
-                    row.4.unwrap_or_else(|| "-".to_string()));
+                    row.3.unwrap_or_else(|| "-".to_string()));
             }
         }
     }
 
     println!("\n=== LAST 10 TOOLS ===");
-    println!("{:<15} | {:<36} | {:<8} | {:<8} | {:<7} | {}", "TOOL", "AGENT ID", "CALLED", "FINISHED", "TOKENS", "STATUS");
+    println!("{:<15} | {:<36} | {:<8} | {:<8} | {:<7} | {}", "TOOL", "AGENT ID", "CALLED", "FINISHED", "CTX ADD", "STATUS");
     println!("{:-<95}", "-");
     if let Ok(mut stmt) = conn.prepare("SELECT tool_name, agent_id, substr(called_at,12,8), substr(returned_at,12,8), ctx_added, is_error FROM tools ORDER BY called_at DESC LIMIT 10") {
         if let Ok(rows) = stmt.query_map([], |row| {
