@@ -113,6 +113,25 @@ pub(crate) fn write_db(event: &str, payload: &Value, now_ts: &str) {
     }
 }
 
+fn update_tools_from_batch(d: &Value, _sid: &str, conn: &rusqlite::Connection) -> rusqlite::Result<()> {
+    if let Some(tools) = d.get("tools").and_then(|v| v.as_array()) {
+        for t in tools {
+            let tuid      = t.get("tool_use_id").and_then(|v| v.as_str());
+            let ret_ts    = t.get("return_ts").and_then(|v| v.as_str());
+            let dur       = t.get("duration_ms").and_then(|v| v.as_i64());
+            let rchars    = t.get("result_size").and_then(|v| v.as_i64());
+            let is_err    = t.get("is_error").and_then(|v| v.as_bool()).unwrap_or(false) as i32;
+            let ctx_added = t.get("ctx_added").and_then(|v| v.as_i64());
+            conn.execute(
+                "UPDATE tools SET returned_at=?1, duration_ms=?2, result_chars=?3, \
+                 is_error=?4, ctx_added=?5 WHERE tool_use_id=?6",
+                rusqlite::params![ret_ts, dur, rchars, is_err, ctx_added, tuid],
+            )?;
+        }
+    }
+    Ok(())
+}
+
 fn write_db_inner(
     event: &str,
     payload: &Value,
@@ -173,18 +192,6 @@ fn write_db_inner(
             )?;
         }
 
-        "PostToolUse" => {
-            let tuid    = d.get("tool_use_id").and_then(|v| v.as_str());
-            let resp    = d.get("tool_response");
-            let is_err  = resp.and_then(|r| r.get("is_error")).and_then(|v| v.as_bool())
-                            .unwrap_or(false) as i32;
-            let rchars  = resp.map(|r| serde_json::to_string(r).unwrap_or_default().len() as i64);
-            conn.execute(
-                "UPDATE tools SET returned_at=?1, result_chars=?2, is_error=?3 WHERE tool_use_id=?4",
-                rusqlite::params![now_ts, rchars, is_err, tuid],
-            )?;
-        }
-
         "SubagentStop" => {
             let agent_id        = d.get("agent_id").and_then(|v| v.as_str()).unwrap_or("");
             let stats           = d.get("stats");
@@ -198,6 +205,7 @@ fn write_db_inner(
                  output_tokens=?4, cache_hit_rate=?5, stopped_at=?6 WHERE agent_id=?7",
                 rusqlite::params![wall_sec, tool_call_count, error_count, output_tokens, cache_hit_rate, now_ts, agent_id],
             )?;
+            update_tools_from_batch(d, sid, conn)?;
         }
 
         "Stop" => {
@@ -206,6 +214,7 @@ fn write_db_inner(
                 "UPDATE sessions SET cache_hit_rate=?1 WHERE session_id=?2",
                 rusqlite::params![hit_rate, sid],
             )?;
+            update_tools_from_batch(d, sid, conn)?;
         }
 
         "SessionEnd" => {
