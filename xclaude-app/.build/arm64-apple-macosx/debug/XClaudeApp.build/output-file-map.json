@@ -1,0 +1,75 @@
+{
+  "": {
+    "swift-dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/master.swiftdeps"
+  },
+  "/Users/itamarbarron/xclaude/xclaude-app/Sources/XClaudeApp/App.swift": {
+    "dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/App.d",
+    "object": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/App.swift.o",
+    "swiftmodule": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/App~partial.swiftmodule",
+    "swift-dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/App.swiftdeps",
+    "diagnostics": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/App.dia"
+  },
+  "/Users/itamarbarron/xclaude/xclaude-app/Sources/XClaudeApp/ContentView.swift": {
+    "dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/ContentView.d",
+    "object": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/ContentView.swift.o",
+    "swiftmodule": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/ContentView~partial.swiftmodule",
+    "swift-dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/ContentView.swiftdeps",
+    "diagnostics": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/ContentView.dia"
+  },
+  "/Users/itamarbarron/xclaude/xclaude-app/Sources/XClaudeApp/EventBus.swift": {
+    "dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/EventBus.d",
+    "object": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/EventBus.swift.o",
+    "swiftmodule": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/EventBus~partial.swiftmodule",
+    "swift-dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/EventBus.swiftdeps",
+    "diagnostics": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/EventBus.dia"
+  },
+  "/Users/itamarbarron/xclaude/xclaude-app/Sources/XClaudeApp/Models.swift": {
+    "dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/Models.d",
+    "object": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/Models.swift.o",
+    "swiftmodule": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/Models~partial.swiftmodule",
+    "swift-dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/Models.swiftdeps",
+    "diagnostics": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/Models.dia"
+  },
+  "/Users/itamarbarron/xclaude/xclaude-app/Sources/XClaudeApp/SQLiteReader.swift": {
+    "dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SQLiteReader.d",
+    "object": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SQLiteReader.swift.o",
+    "swiftmodule": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SQLiteReader~partial.swiftmodule",
+    "swift-dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SQLiteReader.swiftdeps",
+    "diagnostics": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SQLiteReader.dia"
+  },
+  "/Users/itamarbarron/xclaude/xclaude-app/Sources/XClaudeApp/SessionDetailView.swift": {
+    "dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SessionDetailView.d",
+    "object": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SessionDetailView.swift.o",
+    "swiftmodule": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SessionDetailView~partial.swiftmodule",
+    "swift-dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SessionDetailView.swiftdeps",
+    "diagnostics": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SessionDetailView.dia"
+  },
+  "/Users/itamarbarron/xclaude/xclaude-app/Sources/XClaudeApp/SessionSidebar.swift": {
+    "dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SessionSidebar.d",
+    "object": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SessionSidebar.swift.o",
+    "swiftmodule": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SessionSidebar~partial.swiftmodule",
+    "swift-dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SessionSidebar.swiftdeps",
+    "diagnostics": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SessionSidebar.dia"
+  },
+  "/Users/itamarbarron/xclaude/xclaude-app/Sources/XClaudeApp/SocketServer.swift": {
+    "dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SocketServer.d",
+    "object": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SocketServer.swift.o",
+    "swiftmodule": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SocketServer~partial.swiftmodule",
+    "swift-dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SocketServer.swiftdeps",
+    "diagnostics": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SocketServer.dia"
+  },
+  "/Users/itamarbarron/xclaude/xclaude-app/Sources/XClaudeApp/SubagentRow.swift": {
+    "dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SubagentRow.d",
+    "object": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SubagentRow.swift.o",
+    "swiftmodule": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SubagentRow~partial.swiftmodule",
+    "swift-dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SubagentRow.swiftdeps",
+    "diagnostics": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/SubagentRow.dia"
+  },
+  "/Users/itamarbarron/xclaude/xclaude-app/Sources/XClaudeApp/ToolCallRow.swift": {
+    "dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/ToolCallRow.d",
+    "object": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/ToolCallRow.swift.o",
+    "swiftmodule": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/ToolCallRow~partial.swiftmodule",
+    "swift-dependencies": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/ToolCallRow.swiftdeps",
+    "diagnostics": "/Users/itamarbarron/xclaude/xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp.build/ToolCallRow.dia"
+  }
+}
