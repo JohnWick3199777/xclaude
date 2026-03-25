@@ -277,23 +277,33 @@ pub(crate) fn print_db_status() {
     }
 
     println!("\n=== LAST 10 TOOLS ===");
-    println!("{:<15} | {:<36} | {:<36} | {}", "TOOL", "AGENT ID", "SESSION ID", "CALLED AT");
-    println!("{:-<110}", "-");
-    if let Ok(mut stmt) = conn.prepare("SELECT tool_name, agent_id, session_id, called_at FROM tools ORDER BY called_at DESC LIMIT 10") {
+    println!("{:<15} | {:<36} | {:<24} | {:<24} | {:<11} | {}", "TOOL", "AGENT ID", "CALLED AT", "FINISHED AT", "CTX ADDED", "STATUS");
+    println!("{:-<135}", "-");
+    if let Ok(mut stmt) = conn.prepare("SELECT tool_name, agent_id, called_at, returned_at, ctx_added, is_error FROM tools ORDER BY called_at DESC LIMIT 10") {
         if let Ok(rows) = stmt.query_map([], |row| {
             Ok((
                 row.get::<_, Option<String>>(0)?,
                 row.get::<_, Option<String>>(1)?,
                 row.get::<_, Option<String>>(2)?,
                 row.get::<_, Option<String>>(3)?,
+                row.get::<_, Option<i64>>(4)?,
+                row.get::<_, Option<i64>>(5)?,
             ))
         }) {
             for row in rows.flatten() {
-                println!("{:<15} | {:<36} | {:<36} | {}",
+                let status = match row.5 {
+                    Some(1) => "FAIL",
+                    Some(0) => "pass",
+                    None    => "-",
+                    _       => "-",
+                };
+                println!("{:<15} | {:<36} | {:<24} | {:<24} | {:<11} | {}",
                     row.0.unwrap_or_else(|| "-".to_string()),
                     row.1.unwrap_or_else(|| "-".to_string()),
                     row.2.unwrap_or_else(|| "-".to_string()),
-                    row.3.unwrap_or_else(|| "-".to_string()));
+                    row.3.unwrap_or_else(|| "-".to_string()),
+                    row.4.map(|v| v.to_string()).unwrap_or_else(|| "-".to_string()),
+                    status);
             }
         }
     }
