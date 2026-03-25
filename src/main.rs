@@ -37,8 +37,8 @@ enum Cmd {
     Logs,
     /// Pretty-print today's log.
     Pretty,
-    /// Launch the xclaude macOS GUI viewer.
-    Gui,
+    /// Launch the xclaude macOS UI viewer.
+    Ui,
     /// Symlink xclaude as `claude` on PATH.
     Install,
 }
@@ -81,7 +81,7 @@ fn main() {
             Some(Cmd::Hooks) => commands::cmd_hooks(),
             Some(Cmd::Logs) => commands::cmd_logs(),
             Some(Cmd::Pretty) => commands::cmd_pretty(),
-            Some(Cmd::Gui) => commands::cmd_gui(),
+            Some(Cmd::Ui) => commands::cmd_ui(),
             Some(Cmd::Install) => commands::cmd_install(),
             None => wrapper::run_wrapper(cli.args),
         },

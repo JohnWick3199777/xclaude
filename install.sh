@@ -17,16 +17,49 @@ fi
 echo "🛠️  Building xclaude in release mode..."
 cargo build --release
 
-# 3. Create install directories and copy the binary
+# 3. Build the UI (Swift app)
+if command -v swift >/dev/null 2>&1; then
+    echo "🖥️  Building xclaude UI..."
+    (cd xclaude-app && swift build)
+    # Create a minimal .app bundle so macOS launches it as a GUI app
+    UI_BIN="xclaude-app/.build/arm64-apple-macosx/debug/XClaudeApp"
+    if [ -f "$UI_BIN" ]; then
+        APP_DIR="$HOME/.local/bin/XClaudeApp.app/Contents/MacOS"
+        mkdir -p "$APP_DIR"
+        cp "$UI_BIN" "$APP_DIR/XClaudeApp"
+        cat > "$HOME/.local/bin/XClaudeApp.app/Contents/Info.plist" << 'PLIST'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>XClaudeApp</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.xclaude.app</string>
+    <key>CFBundleName</key>
+    <string>XClaude</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>LSUIElement</key>
+    <false/>
+</dict>
+</plist>
+PLIST
+    fi
+else
+    echo "⚠️  Swift not found — skipping UI build. Install Xcode Command Line Tools to enable 'xclaude ui'."
+fi
+
+# 4. Create install directories and copy the binary
 echo "📦 Installing xclaude locally to ~/.local/bin..."
 mkdir -p ~/.local/bin
 cp target/release/xclaude ~/.local/bin/xclaude
 
-# 4. Trigger the built-in installer (creates symlinks)
+# 5. Trigger the built-in installer (creates symlinks)
 echo "🔗 Setting up claude wrapper aliases..."
 ~/.local/bin/xclaude install
 
-# 5. Add to PATH automatically
+# 6. Add to PATH automatically
 echo "🔍 Checking PATH configuration..."
 
 if [ -f "$HOME/.zshrc" ]; then
@@ -51,7 +84,7 @@ if [ -f "$HOME/.bashrc" ]; then
     fi
 fi
 
-# 6. Provide final instructions
+# 7. Provide final instructions
 echo ""
 echo "✅ Success! xclaude has been perfectly installed."
 echo ""

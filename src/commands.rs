@@ -76,49 +76,46 @@ pub(crate) fn cmd_pretty() {
     }
 }
 
-pub(crate) fn cmd_gui() {
+pub(crate) fn cmd_ui() {
     let self_exe = env::current_exe().expect("cannot find self");
-    let app_dir = self_exe
-        .parent().unwrap()          // target/{debug,release}
-        .parent().unwrap()          // target/
-        .parent().unwrap()          // repo root
-        .join("xclaude-app");
+    let self_dir = self_exe.parent().unwrap();
 
-    // Try pre-built binary first, then build on demand.
-    let bin = find_gui_binary(&app_dir);
-    let bin = match bin {
-        Some(b) => b,
-        None => {
-            eprintln!("[xclaude] GUI not built yet — building with swift build ...");
-            let status = Command::new("swift")
-                .arg("build")
-                .current_dir(&app_dir)
-                .status();
-            match status {
-                Ok(s) if s.success() => {}
-                Ok(s) => {
-                    eprintln!("[xclaude] swift build failed (exit {})", s.code().unwrap_or(-1));
-                    process::exit(1);
-                }
-                Err(e) => {
-                    eprintln!("[xclaude] could not run swift build: {e}");
-                    process::exit(1);
-                }
-            }
-            find_gui_binary(&app_dir).unwrap_or_else(|| {
-                eprintln!("[xclaude] GUI binary not found after build");
+    // 1. Check for .app bundle next to the binary (installed via install.sh)
+    let app_bundle = self_dir.join("XClaudeApp.app");
+    // 2. Check cargo build tree (dev: target/{debug,release}/xclaude → repo/xclaude-app/.build/...)
+    let dev_dir = self_dir.parent().and_then(|p| p.parent()).map(|repo| repo.join("xclaude-app"));
+
+    if app_bundle.is_dir() {
+        eprintln!("[xclaude] launching UI");
+        match Command::new("open").arg("-a").arg(&app_bundle).spawn() {
+            Ok(_) => {}
+            Err(e) => {
+                eprintln!("[xclaude] failed to launch UI: {e}");
                 process::exit(1);
-            })
+            }
         }
-    };
-
-    eprintln!("[xclaude] launching GUI: {}", bin.display());
-    match Command::new(&bin).spawn() {
-        Ok(_) => {}
-        Err(e) => {
-            eprintln!("[xclaude] failed to launch GUI: {e}");
+    } else if let Some(ref app_dir) = dev_dir {
+        let bin = find_gui_binary(app_dir).unwrap_or_else(|| {
+            eprintln!("[xclaude] UI binary not found. Run install.sh or build with: cd xclaude-app && swift build");
             process::exit(1);
+        });
+        eprintln!("[xclaude] launching UI (dev): {}", bin.display());
+        // In dev mode, spawn directly (no .app bundle available)
+        match Command::new(&bin)
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+        {
+            Ok(_) => {}
+            Err(e) => {
+                eprintln!("[xclaude] failed to launch UI: {e}");
+                process::exit(1);
+            }
         }
+    } else {
+        eprintln!("[xclaude] UI not found. Run install.sh to build and install the UI.");
+        process::exit(1);
     }
 }
 
