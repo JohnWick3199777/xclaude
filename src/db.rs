@@ -1,6 +1,7 @@
 use serde_json::Value;
 use std::env;
 use std::fs;
+use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 
 
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS agents (
     wall_sec         INTEGER,
     tool_call_count  INTEGER,
     error_count      INTEGER,
+    input_tokens     INTEGER,
     output_tokens    INTEGER,
     cache_hit_rate   REAL,
     started_at       TEXT,
@@ -62,8 +64,6 @@ fn open_db() -> Option<rusqlite::Connection> {
     conn.execute_batch("PRAGMA journal_mode=WAL;").ok()?;
     let version: i32 = conn.pragma_query_value(None, "user_version", |r| r.get(0)).unwrap_or(0);
     if version < 2 {
-        // Migrate to v2: drop legacy tables, create sessions/agents/tools schema.
-        // Disable FK checks so drops succeed even if FK metadata lingers.
         conn.execute_batch("PRAGMA foreign_keys=OFF;").ok()?;
         conn.execute_batch(
             "DROP TABLE IF EXISTS turns;
@@ -76,6 +76,10 @@ fn open_db() -> Option<rusqlite::Connection> {
         conn.execute_batch("PRAGMA foreign_keys=ON;").ok()?;
     } else {
         conn.execute_batch("PRAGMA foreign_keys=ON;").ok()?;
+    }
+    if version < 3 {
+        conn.execute_batch("ALTER TABLE agents ADD COLUMN input_tokens INTEGER;").ok();
+        conn.pragma_update(None, "user_version", 3i32).ok()?;
     }
     Some(conn)
 }
@@ -111,6 +115,27 @@ pub(crate) fn write_db(event: &str, payload: &Value, now_ts: &str) {
     if let Err(e) = write_db_inner(event, payload, now_ts, &conn) {
         eprintln!("[xclaude] db write error ({event}): {e}");
     }
+}
+
+fn sum_transcript_tokens(path: &str) -> (i64, i64) {
+    let file = match fs::File::open(path) {
+        Ok(f) => f,
+        Err(_) => return (0, 0),
+    };
+    let (mut input, mut output) = (0i64, 0i64);
+    for line in BufReader::new(file).lines().flatten() {
+        if let Ok(d) = serde_json::from_str::<Value>(&line) {
+            if d.get("type").and_then(|v| v.as_str()) == Some("assistant") {
+                if let Some(u) = d.get("message").and_then(|m| m.get("usage")) {
+                    input  += u.get("input_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
+                    input  += u.get("cache_read_input_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
+                    input  += u.get("cache_creation_input_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
+                    output += u.get("output_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
+                }
+            }
+        }
+    }
+    (input, output)
 }
 
 fn update_tools_from_batch(d: &Value, _sid: &str, conn: &rusqlite::Connection) -> rusqlite::Result<()> {
@@ -195,16 +220,22 @@ fn write_db_inner(
 
         "SubagentStop" => {
             let agent_id        = d.get("agent_id").and_then(|v| v.as_str()).unwrap_or("");
+            let transcript_path = d.get("agent_transcript_path").and_then(|v| v.as_str()).unwrap_or("");
             let stats           = d.get("stats");
             let wall_sec        = stats.and_then(|s| s.get("wall_time_ms")).and_then(|v| v.as_i64()).map(|ms| ms / 1000);
             let tool_call_count = stats.and_then(|s| s.get("tool_calls")).and_then(|v| v.as_i64());
             let error_count     = stats.and_then(|s| s.get("errors")).and_then(|v| v.as_i64());
-            let output_tokens   = stats.and_then(|s| s.get("output_tokens")).and_then(|v| v.as_i64());
             let cache_hit_rate  = stats.and_then(|s| s.get("cache_hit_rate")).and_then(|v| v.as_f64());
+            let (input_tokens, output_tokens) = if !transcript_path.is_empty() {
+                let (i, o) = sum_transcript_tokens(transcript_path);
+                (Some(i), Some(o))
+            } else {
+                (None, None)
+            };
             conn.execute(
                 "UPDATE agents SET wall_sec=?1, tool_call_count=?2, error_count=?3, \
-                 output_tokens=?4, cache_hit_rate=?5, stopped_at=?6 WHERE agent_id=?7",
-                rusqlite::params![wall_sec, tool_call_count, error_count, output_tokens, cache_hit_rate, now_ts, agent_id],
+                 input_tokens=?4, output_tokens=?5, cache_hit_rate=?6, stopped_at=?7 WHERE agent_id=?8",
+                rusqlite::params![wall_sec, tool_call_count, error_count, input_tokens, output_tokens, cache_hit_rate, now_ts, agent_id],
             )?;
             update_tools_from_batch(d, sid, conn)?;
         }
