@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS agents (
     error_count      INTEGER,
     input_tokens     INTEGER,
     output_tokens    INTEGER,
+    ctx_size         INTEGER,
     cache_hit_rate   REAL,
     started_at       TEXT,
     stopped_at       TEXT
@@ -81,6 +82,10 @@ fn open_db() -> Option<rusqlite::Connection> {
         conn.execute_batch("ALTER TABLE agents ADD COLUMN input_tokens INTEGER;").ok();
         conn.pragma_update(None, "user_version", 3i32).ok()?;
     }
+    if version < 4 {
+        conn.execute_batch("ALTER TABLE agents ADD COLUMN ctx_size INTEGER;").ok();
+        conn.pragma_update(None, "user_version", 4i32).ok()?;
+    }
     Some(conn)
 }
 
@@ -117,25 +122,28 @@ pub(crate) fn write_db(event: &str, payload: &Value, now_ts: &str) {
     }
 }
 
-fn sum_transcript_tokens(path: &str) -> (i64, i64) {
+/// Returns (total_input, total_output, last_ctx_size)
+fn sum_transcript_tokens(path: &str) -> (i64, i64, i64) {
     let file = match fs::File::open(path) {
         Ok(f) => f,
-        Err(_) => return (0, 0),
+        Err(_) => return (0, 0, 0),
     };
-    let (mut input, mut output) = (0i64, 0i64);
+    let (mut input, mut output, mut last_ctx) = (0i64, 0i64, 0i64);
     for line in BufReader::new(file).lines().flatten() {
         if let Ok(d) = serde_json::from_str::<Value>(&line) {
             if d.get("type").and_then(|v| v.as_str()) == Some("assistant") {
                 if let Some(u) = d.get("message").and_then(|m| m.get("usage")) {
-                    input  += u.get("input_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
-                    input  += u.get("cache_read_input_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
-                    input  += u.get("cache_creation_input_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
+                    let in_tok = u.get("input_tokens").and_then(|v| v.as_i64()).unwrap_or(0)
+                        + u.get("cache_read_input_tokens").and_then(|v| v.as_i64()).unwrap_or(0)
+                        + u.get("cache_creation_input_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
+                    input  += in_tok;
                     output += u.get("output_tokens").and_then(|v| v.as_i64()).unwrap_or(0);
+                    last_ctx = in_tok; // last assistant message's context size
                 }
             }
         }
     }
-    (input, output)
+    (input, output, last_ctx)
 }
 
 fn update_tools_from_batch(d: &Value, _sid: &str, conn: &rusqlite::Connection) -> rusqlite::Result<()> {
@@ -226,11 +234,11 @@ fn write_db_inner(
                     std::path::Path::new(tp).parent().map(|p| p.to_string_lossy().into_owned()).unwrap_or_default(),
                     aid
                 );
-                let (in_tok, out_tok) = sum_transcript_tokens(&transcript);
+                let (in_tok, out_tok, ctx) = sum_transcript_tokens(&transcript);
                 if in_tok > 0 || out_tok > 0 {
                     conn.execute(
-                        "UPDATE agents SET input_tokens=?1, output_tokens=?2 WHERE agent_id=?3",
-                        rusqlite::params![in_tok, out_tok, aid],
+                        "UPDATE agents SET input_tokens=?1, output_tokens=?2, ctx_size=?3 WHERE agent_id=?4",
+                        rusqlite::params![in_tok, out_tok, ctx, aid],
                     )?;
                 }
             }
@@ -244,16 +252,16 @@ fn write_db_inner(
             let tool_call_count = stats.and_then(|s| s.get("tool_calls")).and_then(|v| v.as_i64());
             let error_count     = stats.and_then(|s| s.get("errors")).and_then(|v| v.as_i64());
             let cache_hit_rate  = stats.and_then(|s| s.get("cache_hit_rate")).and_then(|v| v.as_f64());
-            let (input_tokens, output_tokens) = if !transcript_path.is_empty() {
-                let (i, o) = sum_transcript_tokens(transcript_path);
-                (Some(i), Some(o))
+            let (input_tokens, output_tokens, ctx_size) = if !transcript_path.is_empty() {
+                let (i, o, c) = sum_transcript_tokens(transcript_path);
+                (Some(i), Some(o), Some(c))
             } else {
-                (None, None)
+                (None, None, None)
             };
             conn.execute(
                 "UPDATE agents SET wall_sec=?1, tool_call_count=?2, error_count=?3, \
-                 input_tokens=?4, output_tokens=?5, cache_hit_rate=?6, stopped_at=?7 WHERE agent_id=?8",
-                rusqlite::params![wall_sec, tool_call_count, error_count, input_tokens, output_tokens, cache_hit_rate, now_ts, agent_id],
+                 input_tokens=?4, output_tokens=?5, ctx_size=?6, cache_hit_rate=?7, stopped_at=?8 WHERE agent_id=?9",
+                rusqlite::params![wall_sec, tool_call_count, error_count, input_tokens, output_tokens, ctx_size, cache_hit_rate, now_ts, agent_id],
             )?;
             update_tools_from_batch(d, sid, conn)?;
         }
@@ -274,7 +282,8 @@ fn write_db_inner(
             conn.execute(
                 "UPDATE agents SET \
                  input_tokens=COALESCE(input_tokens,0)+COALESCE(?1,0), \
-                 output_tokens=COALESCE(output_tokens,0)+COALESCE(?2,0) \
+                 output_tokens=COALESCE(output_tokens,0)+COALESCE(?2,0), \
+                 ctx_size=?1 \
                  WHERE agent_id=?3",
                 rusqlite::params![in_tok, out_tok, sid],
             )?;
@@ -331,12 +340,9 @@ pub(crate) fn print_db_status() {
     println!("{:<36} | {:<36} | {:<10} | {}", "AGENT ID", "PARENT ID", "CTX SIZE", "STARTED AT");
     println!("{:-<100}", "-");
     if let Ok(mut stmt) = conn.prepare(
-        "SELECT a.agent_id, a.parent_agent_id, \
-                (SELECT t.ctx_before FROM tools t WHERE t.agent_id=a.agent_id ORDER BY t.called_at DESC LIMIT 1), \
-                a.started_at \
-         FROM agents a \
-         WHERE a.session_id IN (SELECT session_id FROM sessions WHERE ended_at IS NULL) \
-         ORDER BY a.started_at DESC"
+        "SELECT agent_id, parent_agent_id, ctx_size, started_at FROM agents \
+         WHERE session_id IN (SELECT session_id FROM sessions WHERE ended_at IS NULL) \
+         ORDER BY started_at DESC"
     ) {
         if let Ok(rows) = stmt.query_map([], |row| {
             Ok((
