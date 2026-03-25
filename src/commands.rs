@@ -3,9 +3,10 @@ use std::env;
 use std::fs;
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
+use std::process::{self, Command};
 
 use crate::hooks::ALL_HOOKS;
-use crate::logger::{log_file};
+use crate::logger::log_file;
 
 pub(crate) fn cmd_hooks() {
     for h in ALL_HOOKS {
@@ -73,6 +74,67 @@ pub(crate) fn cmd_pretty() {
         }
         Err(_) => println!("[xclaude] no log yet at {}", path.display()),
     }
+}
+
+pub(crate) fn cmd_gui() {
+    let self_exe = env::current_exe().expect("cannot find self");
+    let app_dir = self_exe
+        .parent().unwrap()          // target/{debug,release}
+        .parent().unwrap()          // target/
+        .parent().unwrap()          // repo root
+        .join("xclaude-app");
+
+    // Try pre-built binary first, then build on demand.
+    let bin = find_gui_binary(&app_dir);
+    let bin = match bin {
+        Some(b) => b,
+        None => {
+            eprintln!("[xclaude] GUI not built yet — building with swift build ...");
+            let status = Command::new("swift")
+                .arg("build")
+                .current_dir(&app_dir)
+                .status();
+            match status {
+                Ok(s) if s.success() => {}
+                Ok(s) => {
+                    eprintln!("[xclaude] swift build failed (exit {})", s.code().unwrap_or(-1));
+                    process::exit(1);
+                }
+                Err(e) => {
+                    eprintln!("[xclaude] could not run swift build: {e}");
+                    process::exit(1);
+                }
+            }
+            find_gui_binary(&app_dir).unwrap_or_else(|| {
+                eprintln!("[xclaude] GUI binary not found after build");
+                process::exit(1);
+            })
+        }
+    };
+
+    eprintln!("[xclaude] launching GUI: {}", bin.display());
+    match Command::new(&bin).spawn() {
+        Ok(_) => {}
+        Err(e) => {
+            eprintln!("[xclaude] failed to launch GUI: {e}");
+            process::exit(1);
+        }
+    }
+}
+
+fn find_gui_binary(app_dir: &PathBuf) -> Option<PathBuf> {
+    // Prefer release, fall back to debug.
+    for profile in &["release", "debug"] {
+        let candidate = app_dir
+            .join(".build")
+            .join("arm64-apple-macosx")
+            .join(profile)
+            .join("XClaudeApp");
+        if candidate.is_file() {
+            return Some(candidate);
+        }
+    }
+    None
 }
 
 pub(crate) fn cmd_install() {

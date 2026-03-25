@@ -6,6 +6,7 @@ use std::process::{self, Command};
 
 use crate::hooks;
 
+/// Find the real `claude` binary, skipping ourselves.
 pub(crate) fn find_real_claude() -> Option<PathBuf> {
     let self_exe = env::current_exe().ok();
     let self_canonical = self_exe
