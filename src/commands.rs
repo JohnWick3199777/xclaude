@@ -56,8 +56,8 @@ pub(crate) fn cmd_logs() {
     }
 }
 
-pub(crate) fn cmd_sessions() {
-    crate::db::print_live_sessions();
+pub(crate) fn cmd_db() {
+    crate::db::print_db_status();
 }
 
 pub(crate) fn cmd_info() {
