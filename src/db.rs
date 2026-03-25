@@ -297,21 +297,25 @@ pub(crate) fn print_db_status() {
     }
 
     println!("\n=== AGENTS ===");
-    println!("{:<36} | {:<36} | {}", "AGENT ID", "PARENT ID", "STARTED AT");
-    println!("{:-<90}", "-");
-    if let Ok(mut stmt) = conn.prepare("SELECT agent_id, parent_agent_id, started_at FROM agents WHERE session_id IN (SELECT session_id FROM sessions WHERE ended_at IS NULL) ORDER BY started_at DESC") {
+    println!("{:<36} | {:<36} | {:<10} | {:<10} | {}", "AGENT ID", "PARENT ID", "IN TOKENS", "OUT TOKENS", "STARTED AT");
+    println!("{:-<115}", "-");
+    if let Ok(mut stmt) = conn.prepare("SELECT agent_id, parent_agent_id, input_tokens, output_tokens, started_at FROM agents WHERE session_id IN (SELECT session_id FROM sessions WHERE ended_at IS NULL) ORDER BY started_at DESC") {
         if let Ok(rows) = stmt.query_map([], |row| {
             Ok((
                 row.get::<_, String>(0)?,
                 row.get::<_, Option<String>>(1)?,
-                row.get::<_, Option<String>>(2)?,
+                row.get::<_, Option<i64>>(2)?,
+                row.get::<_, Option<i64>>(3)?,
+                row.get::<_, Option<String>>(4)?,
             ))
         }) {
             for row in rows.flatten() {
-                println!("{:<36} | {:<36} | {}",
+                println!("{:<36} | {:<36} | {:<10} | {:<10} | {}",
                     row.0,
                     row.1.unwrap_or_else(|| "-".to_string()),
-                    row.2.unwrap_or_else(|| "-".to_string()));
+                    row.2.map(|v| v.to_string()).unwrap_or_else(|| "-".to_string()),
+                    row.3.map(|v| v.to_string()).unwrap_or_else(|| "-".to_string()),
+                    row.4.unwrap_or_else(|| "-".to_string()));
             }
         }
     }
