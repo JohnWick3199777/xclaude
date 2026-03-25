@@ -304,7 +304,7 @@ pub(crate) fn print_db_status() {
             for row in rows.flatten() {
                 let status = match row.5 {
                     Some(1) => "FAIL",
-                    Some(0) => "pass",
+                    Some(0) => "PASS",
                     None    => "-",
                     _       => "-",
                 };
