@@ -259,11 +259,24 @@ fn write_db_inner(
         }
 
         "Stop" => {
+            let usage     = d.get("usage");
             let hit_rate  = d.get("cache_hit_rate").and_then(|v| v.as_f64());
-            let out_tok   = d.get("usage").and_then(|u| u.get("output_tokens")).and_then(|v| v.as_i64());
+            let out_tok   = usage.and_then(|u| u.get("output_tokens")).and_then(|v| v.as_i64());
+            let in_tok    = usage.map(|u| {
+                u.get("input_tokens").and_then(|v| v.as_i64()).unwrap_or(0)
+                + u.get("cache_read_input_tokens").and_then(|v| v.as_i64()).unwrap_or(0)
+                + u.get("cache_creation_input_tokens").and_then(|v| v.as_i64()).unwrap_or(0)
+            });
             conn.execute(
                 "UPDATE sessions SET cache_hit_rate=?1, total_out_tokens=COALESCE(total_out_tokens,0)+COALESCE(?2,0) WHERE session_id=?3",
                 rusqlite::params![hit_rate, out_tok, sid],
+            )?;
+            conn.execute(
+                "UPDATE agents SET \
+                 input_tokens=COALESCE(input_tokens,0)+COALESCE(?1,0), \
+                 output_tokens=COALESCE(output_tokens,0)+COALESCE(?2,0) \
+                 WHERE agent_id=?3",
+                rusqlite::params![in_tok, out_tok, sid],
             )?;
             update_tools_from_batch(d, sid, conn)?;
         }
