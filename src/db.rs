@@ -122,10 +122,11 @@ fn update_tools_from_batch(d: &Value, _sid: &str, conn: &rusqlite::Connection) -
             let rchars    = t.get("result_size").and_then(|v| v.as_i64());
             let is_err    = t.get("is_error").and_then(|v| v.as_bool()).unwrap_or(false) as i32;
             let ctx_added = t.get("ctx_added").and_then(|v| v.as_i64());
+            let ctx_before = t.get("context_tokens").and_then(|v| v.as_i64());
             conn.execute(
                 "UPDATE tools SET returned_at=?1, duration_ms=?2, result_chars=?3, \
-                 is_error=?4, ctx_added=?5 WHERE tool_use_id=?6",
-                rusqlite::params![ret_ts, dur, rchars, is_err, ctx_added, tuid],
+                 is_error=?4, ctx_added=?5, ctx_before=?6 WHERE tool_use_id=?7",
+                rusqlite::params![ret_ts, dur, rchars, is_err, ctx_added, ctx_before, tuid],
             )?;
         }
     }
@@ -209,10 +210,11 @@ fn write_db_inner(
         }
 
         "Stop" => {
-            let hit_rate = d.get("cache_hit_rate").and_then(|v| v.as_f64());
+            let hit_rate  = d.get("cache_hit_rate").and_then(|v| v.as_f64());
+            let out_tok   = d.get("usage").and_then(|u| u.get("output_tokens")).and_then(|v| v.as_i64());
             conn.execute(
-                "UPDATE sessions SET cache_hit_rate=?1 WHERE session_id=?2",
-                rusqlite::params![hit_rate, sid],
+                "UPDATE sessions SET cache_hit_rate=?1, total_out_tokens=COALESCE(total_out_tokens,0)+COALESCE(?2,0) WHERE session_id=?3",
+                rusqlite::params![hit_rate, out_tok, sid],
             )?;
             update_tools_from_batch(d, sid, conn)?;
         }
