@@ -216,6 +216,24 @@ fn write_db_inner(
                  VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
                 rusqlite::params![tuid, sid, agent_id, name, summary, now_ts],
             )?;
+            // Live token update for subagents: derive transcript path and read current counts
+            if let (Some(aid), Some(tp)) = (
+                d.get("agent_id").and_then(|v| v.as_str()),
+                d.get("transcript_path").and_then(|v| v.as_str()),
+            ) {
+                let transcript = format!(
+                    "{}/subagents/agent-{}.jsonl",
+                    std::path::Path::new(tp).parent().map(|p| p.to_string_lossy().into_owned()).unwrap_or_default(),
+                    aid
+                );
+                let (in_tok, out_tok) = sum_transcript_tokens(&transcript);
+                if in_tok > 0 || out_tok > 0 {
+                    conn.execute(
+                        "UPDATE agents SET input_tokens=?1, output_tokens=?2 WHERE agent_id=?3",
+                        rusqlite::params![in_tok, out_tok, aid],
+                    )?;
+                }
+            }
         }
 
         "SubagentStop" => {
