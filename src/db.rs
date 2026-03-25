@@ -277,7 +277,7 @@ pub(crate) fn print_db_status() {
     }
 
     println!("\n=== LAST 10 TOOLS ===");
-    println!("{:<15} | {:<36} | {:<24} | {:<24} | {:<11} | {}", "TOOL", "AGENT ID", "CALLED AT", "FINISHED AT", "CTX ADDED", "STATUS");
+    println!("{:<15} | {:<36} | {:<24} | {:<24} | {:<11} | {}", "TOOL", "AGENT ID", "CALLED AT", "FINISHED AT", "TOKENS", "STATUS");
     println!("{:-<135}", "-");
     if let Ok(mut stmt) = conn.prepare("SELECT tool_name, agent_id, called_at, returned_at, ctx_added, is_error FROM tools ORDER BY called_at DESC LIMIT 10") {
         if let Ok(rows) = stmt.query_map([], |row| {
