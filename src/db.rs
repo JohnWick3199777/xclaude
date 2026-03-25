@@ -277,9 +277,9 @@ pub(crate) fn print_db_status() {
     }
 
     println!("\n=== LAST 10 TOOLS ===");
-    println!("{:<15} | {:<36} | {:<24} | {:<24} | {:<11} | {}", "TOOL", "AGENT ID", "CALLED AT", "FINISHED AT", "TOKENS", "STATUS");
-    println!("{:-<135}", "-");
-    if let Ok(mut stmt) = conn.prepare("SELECT tool_name, agent_id, called_at, returned_at, ctx_added, is_error FROM tools ORDER BY called_at DESC LIMIT 10") {
+    println!("{:<15} | {:<36} | {:<8} | {:<8} | {:<7} | {}", "TOOL", "AGENT ID", "CALLED", "FINISHED", "TOKENS", "STATUS");
+    println!("{:-<95}", "-");
+    if let Ok(mut stmt) = conn.prepare("SELECT tool_name, agent_id, substr(called_at,12,8), substr(returned_at,12,8), ctx_added, is_error FROM tools ORDER BY called_at DESC LIMIT 10") {
         if let Ok(rows) = stmt.query_map([], |row| {
             Ok((
                 row.get::<_, Option<String>>(0)?,
@@ -297,7 +297,7 @@ pub(crate) fn print_db_status() {
                     None    => "-",
                     _       => "-",
                 };
-                println!("{:<15} | {:<36} | {:<24} | {:<24} | {:<11} | {}",
+                println!("{:<15} | {:<36} | {:<8} | {:<8} | {:<7} | {}",
                     row.0.unwrap_or_else(|| "-".to_string()),
                     row.1.unwrap_or_else(|| "-".to_string()),
                     row.2.unwrap_or_else(|| "-".to_string()),
