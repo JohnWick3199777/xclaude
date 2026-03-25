@@ -267,3 +267,53 @@ fn write_db_inner(
 
     Ok(())
 }
+
+pub(crate) fn print_live_sessions() {
+    let conn = match open_db() {
+        Some(c) => c,
+        None => {
+            eprintln!("[xclaude] could not open db at {}", db_path().display());
+            return;
+        }
+    };
+
+    println!("\n=== SESSIONS ===");
+    println!("{:<36} | {:<30} | {}", "SESSION ID", "DIRECTORY", "STARTED AT");
+    println!("{:-<95}", "-");
+    if let Ok(mut stmt) = conn.prepare("SELECT session_id, cwd, started_at FROM sessions WHERE ended_at IS NULL ORDER BY started_at DESC") {
+        if let Ok(rows) = stmt.query_map([], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, Option<String>>(1)?,
+                row.get::<_, Option<String>>(2)?,
+            ))
+        }) {
+            for row in rows.flatten() {
+                println!("{:<36} | {:<30} | {}", 
+                    row.0, row.1.unwrap_or_else(|| "-".to_string()), row.2.unwrap_or_else(|| "-".to_string()));
+            }
+        }
+    }
+
+    println!("\n=== TOOLS ===");
+    println!("{:<38} | {:<36} | {:<36} | {}", "TOOL ID", "AGENT ID", "SESSION ID", "STARTED AT");
+    println!("{:-<142}", "-");
+    if let Ok(mut stmt) = conn.prepare("SELECT tool_use_id, agent_id, session_id, called_at FROM tool_calls WHERE session_id IN (SELECT session_id FROM sessions WHERE ended_at IS NULL) ORDER BY called_at DESC") {
+        if let Ok(rows) = stmt.query_map([], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, Option<String>>(1)?,
+                row.get::<_, Option<String>>(2)?,
+                row.get::<_, Option<String>>(3)?,
+            ))
+        }) {
+            for row in rows.flatten() {
+                println!("{:<38} | {:<36} | {:<36} | {}", 
+                    row.0, 
+                    row.1.unwrap_or_else(|| "-".to_string()), 
+                    row.2.unwrap_or_else(|| "-".to_string()), 
+                    row.3.unwrap_or_else(|| "-".to_string()));
+            }
+        }
+    }
+}

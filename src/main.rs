@@ -36,6 +36,8 @@ enum Cmd {
     Hooks,
     /// Live-tail today's JSONL log (like tail -f).
     Logs,
+    /// Print all current live sessions from the database.
+    Sessions,
     /// Print environment and debugging info.
     Info,
     /// Launch the xclaude macOS UI viewer.
@@ -80,6 +82,7 @@ fn main() {
             Some(Cmd::Hooks) => commands::cmd_hooks(),
             Some(Cmd::Info) => commands::cmd_info(),
             Some(Cmd::Logs) => commands::cmd_logs(),
+            Some(Cmd::Sessions) => commands::cmd_sessions(),
             Some(Cmd::Ui) => commands::cmd_ui(),
             None => wrapper::run_wrapper(cli.args),
         },

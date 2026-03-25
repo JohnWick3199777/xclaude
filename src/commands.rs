@@ -56,6 +56,9 @@ pub(crate) fn cmd_logs() {
     }
 }
 
+pub(crate) fn cmd_sessions() {
+    crate::db::print_live_sessions();
+}
 
 pub(crate) fn cmd_info() {
     let self_bin = env::current_exe().unwrap_or_else(|_| PathBuf::from("xclaude"));
