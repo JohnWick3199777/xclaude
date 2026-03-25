@@ -5,7 +5,6 @@ mod logger;
 mod rpc;
 mod transcript;
 mod wrapper;
-
 use clap::{CommandFactory, Parser, Subcommand};
 use std::process::Command;
 
@@ -26,21 +25,21 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Cmd {
+    #[command(hide = true)]
     /// Process a hook event from stdin (called by Claude Code internally).
     Hook {
         /// The hook event name (e.g. PreToolUse, Stop, SessionEnd).
         event: Option<String>,
     },
+    #[command(hide = true)]
     /// List all supported hook event names.
     Hooks,
     /// Live-tail today's JSONL log (like tail -f).
     Logs,
-    /// Pretty-print today's log.
-    Pretty,
+    /// Print environment and debugging info.
+    Info,
     /// Launch the xclaude macOS UI viewer.
     Ui,
-    /// Symlink xclaude as `claude` on PATH.
-    Install,
 }
 
 fn print_help() {
@@ -79,10 +78,9 @@ fn main() {
                 hooks::run_hook(&event.unwrap_or_else(|| "Unknown".to_string()));
             }
             Some(Cmd::Hooks) => commands::cmd_hooks(),
+            Some(Cmd::Info) => commands::cmd_info(),
             Some(Cmd::Logs) => commands::cmd_logs(),
-            Some(Cmd::Pretty) => commands::cmd_pretty(),
             Some(Cmd::Ui) => commands::cmd_ui(),
-            Some(Cmd::Install) => commands::cmd_install(),
             None => wrapper::run_wrapper(cli.args),
         },
         Err(e) => {

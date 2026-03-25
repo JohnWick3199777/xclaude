@@ -150,8 +150,9 @@ final class SQLiteReader {
         var stmt: OpaquePointer?
         let sql = """
             SELECT tool_use_id, tool_name, input_summary, called_at, returned_at,
-                   duration_ms, result_chars, is_error, ctx_before, ctx_added
-            FROM tool_calls WHERE session_id = ? AND agent_id IS NULL ORDER BY called_at;
+                   duration_ms, result_chars, is_error, ctx_before, ctx_added,
+                   agent_id, message_uuid, parent_uuid
+            FROM tool_calls WHERE session_id = ? ORDER BY called_at;
             """
         guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else { return [] }
         defer { sqlite3_finalize(stmt) }
@@ -170,6 +171,12 @@ final class SQLiteReader {
             t.isError      = int(stmt, 7) == 1
             t.ctxBefore    = int(stmt, 8)
             t.ctxAdded     = int(stmt, 9)
+            
+            // New fields
+            t.agentId      = string(stmt, 10)
+            t.messageUuid  = string(stmt, 11)
+            t.parentUuid   = string(stmt, 12)
+            
             result.append(t)
         }
         return result

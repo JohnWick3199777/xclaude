@@ -61,6 +61,7 @@ struct ToolCallModel: Identifiable {
     private let _uuid = UUID().uuidString
 
     var toolUseId: String?
+    var agentId: String?
     var toolName: String
     var inputSummary: String?
     var calledAt: Date?
@@ -70,6 +71,8 @@ struct ToolCallModel: Identifiable {
     var isError: Bool = false
     var ctxBefore: Int?
     var ctxAdded: Int?
+    var messageUuid: String?
+    var parentUuid: String?
     var isPending: Bool = false
 }
 

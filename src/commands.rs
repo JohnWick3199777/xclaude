@@ -1,4 +1,3 @@
-use serde_json::Value;
 use std::env;
 use std::fs;
 use std::io::{self, Read, Write};
@@ -57,23 +56,32 @@ pub(crate) fn cmd_logs() {
     }
 }
 
-pub(crate) fn cmd_pretty() {
-    let path = log_file();
-    match fs::read_to_string(&path) {
-        Ok(content) => {
-            for line in content.lines() {
-                if let Ok(v) = serde_json::from_str::<Value>(line) {
-                    let ts = v["ts"].as_str().unwrap_or("?");
-                    let event = v["event"].as_str().unwrap_or("?");
-                    let data = &v["data"];
-                    println!("[{ts}] {event}");
-                    println!("{}", serde_json::to_string_pretty(data).unwrap_or_default());
-                    println!("---");
-                }
-            }
-        }
-        Err(_) => println!("[xclaude] no log yet at {}", path.display()),
+
+pub(crate) fn cmd_info() {
+    let self_bin = env::current_exe().unwrap_or_else(|_| PathBuf::from("xclaude"));
+    let self_version = env!("CARGO_PKG_VERSION");
+    
+    let home = env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
+    let xclaude_dir = PathBuf::from(&home).join(".xclaude");
+    let db_path = xclaude_dir.join("xclaude.db");
+
+    println!("xclaude location: {}", self_bin.display());
+    println!("xclaude version:  {}", self_version);
+
+    if let Some(real) = crate::wrapper::find_real_claude() {
+        println!("claude location:  {}", real.display());
+        let output = Command::new(&real).arg("--version").output().ok();
+        let version = output
+            .and_then(|o| String::from_utf8(o.stdout).ok())
+            .unwrap_or_else(|| "unknown".to_string());
+        println!("claude version:   {}", version.trim());
+    } else {
+        println!("claude location:  not found");
+        println!("claude version:   not found");
     }
+
+    println!("xclaude db:       {}", db_path.display());
+    println!("xclaude files:    {}", xclaude_dir.display());
 }
 
 pub(crate) fn cmd_ui() {
@@ -134,14 +142,4 @@ fn find_gui_binary(app_dir: &PathBuf) -> Option<PathBuf> {
     None
 }
 
-pub(crate) fn cmd_install() {
-    let self_bin = env::current_exe().expect("cannot find self");
-    let home = env::var("HOME").unwrap_or_else(|_| "/usr/local".to_string());
-    let bin_dir = PathBuf::from(&home).join(".local").join("bin");
-    fs::create_dir_all(&bin_dir).expect("cannot create ~/.local/bin");
-    let link = bin_dir.join("claude");
-    let _ = fs::remove_file(&link);
-    std::os::unix::fs::symlink(&self_bin, &link).expect("symlink failed");
-    println!("[xclaude] installed: {} -> {}", link.display(), self_bin.display());
-    println!("[xclaude] make sure {} is first in your PATH", bin_dir.display());
-}
+

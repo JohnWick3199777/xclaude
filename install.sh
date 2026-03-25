@@ -55,9 +55,6 @@ echo "📦 Installing xclaude locally to ~/.local/bin..."
 mkdir -p ~/.local/bin
 cp target/release/xclaude ~/.local/bin/xclaude
 
-# 5. Trigger the built-in installer (creates symlinks)
-echo "🔗 Setting up claude wrapper aliases..."
-~/.local/bin/xclaude install
 
 # 6. Add to PATH automatically
 echo "🔍 Checking PATH configuration..."

@@ -73,7 +73,15 @@ final class EventBus {
                 else { return }
                 if self.sessions[i].prompts.isEmpty    { self.sessions[i].prompts = prompts }
                 if self.sessions[i].subagents.isEmpty  { self.sessions[i].subagents = agents }
-                if self.sessions[i].pendingTools.isEmpty { self.sessions[i].pendingTools = tools }
+                if self.sessions[i].pendingTools.isEmpty {
+                    self.sessions[i].pendingTools = tools.filter { $0.agentId == nil || $0.agentId!.isEmpty }
+                    
+                    for tool in tools where tool.agentId != nil && !tool.agentId!.isEmpty {
+                        if let ai = self.sessions[i].subagents.firstIndex(where: { $0.agentId == tool.agentId }) {
+                            self.sessions[i].subagents[ai].tools.append(tool)
+                        }
+                    }
+                }
             }
         }
     }
@@ -238,6 +246,8 @@ final class EventBus {
         tool.isError      = t["is_error"] as? Bool ?? false
         tool.ctxBefore    = t["context_tokens"] as? Int
         tool.ctxAdded     = t["ctx_added"] as? Int
+        tool.messageUuid  = t["message_uuid"] as? String
+        tool.parentUuid   = t["parent_uuid"] as? String
         return tool
     }
 
