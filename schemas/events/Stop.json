@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "Stop",
+  "title": "Stop",
+  "description": "Fired when Claude stops (end of a turn).",
+  "allOf": [{ "$ref": "_common.json" }],
+  "properties": {
+    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
+    "last_assistant_message": { "type": "string", "description": "The last message Claude produced." },
+    "permission_mode":        { "type": "string", "description": "Current permission mode." },
+    "stop_hook_active":       { "type": "boolean", "description": "Whether a stop hook is active." }
+  },
+  "required": ["last_assistant_message", "permission_mode", "stop_hook_active"],
+  "additionalProperties": false
+}

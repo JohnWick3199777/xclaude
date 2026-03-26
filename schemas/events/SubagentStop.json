@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "SubagentStop",
+  "title": "SubagentStop",
+  "description": "Fired when a subagent finishes.",
+  "allOf": [{ "$ref": "_common.json" }],
+  "properties": {
+    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
+    "agent_id":              { "type": "string", "description": "Unique identifier for the subagent." },
+    "agent_transcript_path": { "type": "string", "description": "Path to the subagent's transcript." }
+  },
+  "required": ["agent_id"],
+  "additionalProperties": false
+}

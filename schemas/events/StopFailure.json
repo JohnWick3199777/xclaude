@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "StopFailure",
+  "title": "StopFailure",
+  "description": "Fired when a stop hook itself fails.",
+  "allOf": [{ "$ref": "_common.json" }],
+  "properties": {
+    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
+    "permission_mode": { "type": "string", "description": "Current permission mode." },
+    "error":           { "type": "string", "description": "Error message." }
+  },
+  "additionalProperties": false
+}

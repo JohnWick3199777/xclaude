@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ConfigChange",
+  "title": "ConfigChange",
+  "description": "Fired when a settings file changes.",
+  "allOf": [{ "$ref": "_common.json" }],
+  "properties": {
+    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
+    "source":    { "type": "string", "description": "Source of the config change." },
+    "file_path": { "type": "string", "description": "Path to the changed settings file." }
+  },
+  "required": ["source", "file_path"],
+  "additionalProperties": false
+}

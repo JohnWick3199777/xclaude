@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "PermissionRequest",
+  "title": "PermissionRequest",
+  "description": "Fired when a tool requires permission approval.",
+  "allOf": [{ "$ref": "_common.json" }],
+  "properties": {
+    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
+    "tool_name":       { "type": "string", "description": "Name of the tool requesting permission." },
+    "tool_use_id":     { "type": "string", "description": "Unique identifier for this tool call." },
+    "permission_mode": { "type": "string", "description": "Current permission mode." },
+    "tool_input":      { "type": "object", "description": "Tool-specific input (opaque)." }
+  },
+  "required": ["tool_name", "tool_use_id", "permission_mode", "tool_input"],
+  "additionalProperties": false
+}

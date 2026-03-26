@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "SessionStart",
+  "title": "SessionStart",
+  "description": "Fired once when a session begins.",
+  "allOf": [{ "$ref": "_common.json" }],
+  "properties": {
+    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
+    "model":  { "type": "string", "description": "Model used for this session." },
+    "source": { "type": "string", "description": "How the session was started (cli, api, etc.)." }
+  },
+  "required": ["model", "source"],
+  "additionalProperties": false
+}

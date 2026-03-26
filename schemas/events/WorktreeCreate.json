@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "WorktreeCreate",
+  "title": "WorktreeCreate",
+  "description": "Fired when a git worktree is created.",
+  "allOf": [{ "$ref": "_common.json" }],
+  "properties": {
+    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
+    "worktree_path": { "type": "string", "description": "Path to the created worktree." }
+  },
+  "additionalProperties": false
+}

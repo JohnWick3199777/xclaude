@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "PostToolUse",
+  "title": "PostToolUse",
+  "description": "Fired after a tool completes successfully.",
+  "allOf": [{ "$ref": "_common.json" }],
+  "properties": {
+    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
+    "tool_name":       { "type": "string", "description": "Name of the tool that was called." },
+    "tool_use_id":     { "type": "string", "description": "Unique identifier for this tool call." },
+    "permission_mode": { "type": "string", "description": "Current permission mode." },
+    "tool_input":      { "type": "object", "description": "Tool-specific input (opaque)." },
+    "tool_response":   { "type": "object", "description": "Tool-specific response (opaque)." }
+  },
+  "required": ["tool_name", "tool_use_id", "permission_mode", "tool_input", "tool_response"],
+  "additionalProperties": false
+}

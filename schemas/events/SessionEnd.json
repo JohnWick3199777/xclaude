@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "SessionEnd",
+  "title": "SessionEnd",
+  "description": "Fired once when a session ends.",
+  "allOf": [{ "$ref": "_common.json" }],
+  "properties": {
+    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
+    "reason": { "type": "string", "description": "Why the session ended." }
+  },
+  "required": ["reason"],
+  "additionalProperties": false
+}

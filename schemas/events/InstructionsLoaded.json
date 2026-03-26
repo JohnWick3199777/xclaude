@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "InstructionsLoaded",
+  "title": "InstructionsLoaded",
+  "description": "Fired when CLAUDE.md or memory files are loaded.",
+  "allOf": [{ "$ref": "_common.json" }],
+  "properties": {
+    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
+    "file_path":   { "type": "string", "description": "Path to the loaded instructions file." },
+    "load_reason": { "type": "string", "description": "Why instructions were loaded." },
+    "memory_type": { "type": "string", "description": "Type of memory file (if applicable)." }
+  },
+  "required": ["load_reason"],
+  "additionalProperties": false
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "Notification",
+  "title": "Notification",
+  "description": "Fired for system notifications.",
+  "allOf": [{ "$ref": "_common.json" }],
+  "properties": {
+    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
+    "message":           { "type": "string", "description": "Notification message text." },
+    "notification_type": { "type": "string", "description": "Type of notification." }
+  },
+  "required": ["message", "notification_type"],
+  "additionalProperties": false
+}

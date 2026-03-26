@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "TeammateIdle",
+  "title": "TeammateIdle",
+  "description": "Fired when a teammate agent becomes idle.",
+  "allOf": [{ "$ref": "_common.json" }],
+  "properties": {
+    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
+    "agent_id": { "type": "string", "description": "Identifier of the idle teammate." }
+  },
+  "additionalProperties": false
+}

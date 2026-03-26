@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "UserPromptSubmit",
+  "title": "UserPromptSubmit",
+  "description": "Fired when the user submits a prompt.",
+  "allOf": [{ "$ref": "_common.json" }],
+  "properties": {
+    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
+    "prompt":          { "type": "string", "description": "The user's prompt text." },
+    "permission_mode": { "type": "string", "description": "Current permission mode." }
+  },
+  "required": ["prompt", "permission_mode"],
+  "additionalProperties": false
+}
