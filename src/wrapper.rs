@@ -84,12 +84,23 @@ pub(crate) fn run_wrapper(original_args: Vec<String>) {
         .map(|p| p.to_string_lossy().to_string())
         .unwrap_or_else(|_| "xclaude".to_string());
 
+    // Check for --no-subagents flag and strip it from forwarded args.
+    let no_subagents = original_args.iter().any(|a| a == "--no-subagents");
+    let forwarded_args: Vec<String> = original_args
+        .into_iter()
+        .filter(|a| a != "--no-subagents")
+        .collect();
+
     let settings_json = hooks::build_hooks_json(&self_bin);
 
-    if let Some(sub) = original_args.first() {
+    if no_subagents {
+        eprintln!("[xclaude] Subagent calls will be blocked");
+    }
+
+    if let Some(sub) = forwarded_args.first() {
         match sub.as_str() {
             "mcp" | "config" | "api-key" | "rc" | "remote-control" => {
-                let err = Command::new(&real_claude).args(&original_args).exec();
+                let err = Command::new(&real_claude).args(&forwarded_args).exec();
                 eprintln!("[xclaude] exec failed: {err}");
                 process::exit(1);
             }
@@ -101,7 +112,14 @@ pub(crate) fn run_wrapper(original_args: Vec<String>) {
         "--settings".to_string(),
         settings_json,
     ];
-    args.extend(original_args);
+
+    // Use Claude Code's native --disallowedTools to block all subagent spawning.
+    if no_subagents {
+        args.push("--disallowedTools".to_string());
+        args.push("Agent".to_string());
+    }
+
+    args.extend(forwarded_args);
 
     let err = Command::new(&real_claude).args(&args).exec();
     eprintln!("[xclaude] exec failed: {err}");
