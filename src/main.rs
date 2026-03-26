@@ -3,6 +3,7 @@ mod db;
 mod hooks;
 mod logger;
 mod rpc;
+mod schemas;
 mod transcript;
 mod wrapper;
 use clap::{CommandFactory, Parser, Subcommand};

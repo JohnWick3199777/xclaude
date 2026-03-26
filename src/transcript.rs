@@ -150,8 +150,8 @@ pub(crate) fn parse_tools_from_lines(lines: &[&str]) -> Vec<Value> {
         }
     }
 
-    // Pass 2: compute ctx_added — cache_creation of the next assistant entry after each batch.
-    let mut ctx_added: HashMap<String, u64> = HashMap::new();
+    // Pass 2: compute ctx_added — delta between next assistant ctx and calling assistant ctx.
+    let mut ctx_added: HashMap<String, i64> = HashMap::new();
     {
         let parsed: Vec<(String, Value)> = lines.iter()
             .filter_map(|l| serde_json::from_str::<Value>(l).ok())
@@ -168,12 +168,22 @@ pub(crate) fn parse_tools_from_lines(lines: &[&str]) -> Vec<Value> {
                     .collect())
                 .unwrap_or_default();
             if ids.is_empty() { continue; }
-            let added = parsed[i + 1..].iter()
+            let current_ctx = entry.get("message").and_then(|m| m.get("usage")).map(|u| {
+                ["input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"]
+                    .iter()
+                    .map(|k| u.get(k).and_then(|v| v.as_u64()).unwrap_or(0))
+                    .sum::<u64>()
+            }).unwrap_or(0) as i64;
+            let next_ctx = parsed[i + 1..].iter()
                 .find(|(t, _)| t == "assistant")
                 .and_then(|(_, e)| e.get("message").and_then(|m| m.get("usage")))
-                .and_then(|u| u.get("cache_creation_input_tokens"))
-                .and_then(|v| v.as_u64())
-                .unwrap_or(0);
+                .map(|u| {
+                    ["input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"]
+                        .iter()
+                        .map(|k| u.get(k).and_then(|v| v.as_u64()).unwrap_or(0))
+                        .sum::<u64>()
+                }).unwrap_or(0) as i64;
+            let added = next_ctx - current_ctx;
             for id in ids {
                 ctx_added.insert(id, added);
             }

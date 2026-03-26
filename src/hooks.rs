@@ -6,6 +6,7 @@ use std::process;
 use crate::db;
 use crate::logger;
 use crate::rpc;
+use crate::schemas;
 use crate::transcript;
 
 pub(crate) const ALL_HOOKS: &[&str] = &[
@@ -40,6 +41,12 @@ pub(crate) fn run_hook(event: &str) {
     let _ = io::stdin().read_to_string(&mut buf);
 
     let input: Value = serde_json::from_str(&buf).unwrap_or(Value::Null);
+
+    // Schema validation gate — warn on unknown fields or type mismatches.
+    let warnings = schemas::validate_hook(event, &buf);
+    for w in &warnings {
+        eprintln!("[xclaude] schema: {w}");
+    }
 
     let payload = transcript::enrich_input(event, &input, &now_ts);
 
