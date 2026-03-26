@@ -3,12 +3,38 @@
   "$id": "SubagentStart",
   "title": "SubagentStart",
   "description": "Fired when a subagent is spawned.",
-  "allOf": [{ "$ref": "_common.json" }],
   "properties": {
-    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
-    "agent_id":   { "type": "string", "description": "Unique identifier for the subagent." },
-    "agent_type": { "type": "string", "description": "Type of the subagent." }
+    "cwd": {
+      "type": "string",
+      "description": "Working directory of the session."
+    },
+    "hook_event_name": {
+      "type": "string",
+      "description": "Name of the event (e.g. SessionStart)."
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Unique session identifier."
+    },
+    "transcript_path": {
+      "type": "string",
+      "description": "Path to the session transcript JSONL file."
+    },
+    "agent_id": {
+      "type": "string",
+      "description": "Unique identifier for the subagent."
+    },
+    "agent_type": {
+      "type": "string",
+      "description": "Type of the subagent."
+    }
   },
-  "required": ["agent_id"],
+  "required": [
+    "cwd",
+    "hook_event_name",
+    "session_id",
+    "transcript_path",
+    "agent_id"
+  ],
   "additionalProperties": false
 }

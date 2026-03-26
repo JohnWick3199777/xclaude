@@ -13,8 +13,6 @@ use std::sync::LazyLock;
 
 static EVENT_SCHEMAS: LazyLock<HashMap<&'static str, Value>> = LazyLock::new(|| {
     let mut m = HashMap::new();
-    // _common is referenced by allOf/$ref but not used directly as an event schema.
-    m.insert("_common", serde_json::from_str(include_str!("../../schemas/events/_common.json")).unwrap());
     m.insert("SessionStart", serde_json::from_str(include_str!("../../schemas/events/SessionStart.json")).unwrap());
     m.insert("SessionEnd", serde_json::from_str(include_str!("../../schemas/events/SessionEnd.json")).unwrap());
     m.insert("UserPromptSubmit", serde_json::from_str(include_str!("../../schemas/events/UserPromptSubmit.json")).unwrap());
@@ -53,23 +51,9 @@ pub fn validate_event(event: &str, raw: &str) -> Vec<String> {
         Err(e) => return vec![format!("{event}: invalid JSON: {e}")],
     };
 
-    // Inline the _common.json required fields check (since $ref is not resolved by jsonschema crate
-    // without a resolver, we do a simple merge: check required common fields + event-specific schema).
-    let common = &EVENT_SCHEMAS["_common"];
     let mut warnings = Vec::new();
 
-    // Check common required fields
-    if let Some(required) = common.get("required").and_then(|r| r.as_array()) {
-        for field in required {
-            if let Some(name) = field.as_str() {
-                if instance.get(name).is_none() {
-                    warnings.push(format!("{event}: missing common field: {name}"));
-                }
-            }
-        }
-    }
-
-    // Check event-specific required fields
+    // Check required fields
     if let Some(required) = schema_value.get("required").and_then(|r| r.as_array()) {
         for field in required {
             if let Some(name) = field.as_str() {
@@ -83,10 +67,6 @@ pub fn validate_event(event: &str, raw: &str) -> Vec<String> {
     // Check types of known properties
     if let Some(props) = schema_value.get("properties").and_then(|p| p.as_object()) {
         for (key, schema_prop) in props {
-            // Skip passthrough entries (value is `true`)
-            if schema_prop.as_bool() == Some(true) {
-                continue;
-            }
             if let Some(value) = instance.get(key) {
                 if let Some(expected_type) = schema_prop.get("type").and_then(|t| t.as_str()) {
                     let type_ok = match expected_type {

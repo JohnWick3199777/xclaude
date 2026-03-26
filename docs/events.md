@@ -18,7 +18,6 @@ Each event has a JSON Schema definition in `schemas/events/`:
 
 ```
 schemas/events/
-  _common.json              # Fields present on every event
   SessionStart.json
   SessionEnd.json
   UserPromptSubmit.json
@@ -43,11 +42,11 @@ schemas/events/
   WorktreeRemove.json
 ```
 
-All schemas use [JSON Schema draft 2020-12](https://json-schema.org/draft/2020-12/schema) with `additionalProperties: false` to catch schema drift.
+Each schema file is **fully self-contained** — no `$ref` or shared files. All schemas use [JSON Schema draft 2020-12](https://json-schema.org/draft/2020-12/schema) with `additionalProperties: false` to catch schema drift.
 
 ## Common Fields
 
-Every event carries these four fields (defined in `_common.json`):
+Every event carries these four fields (included in each schema file):
 
 | Field | Type | Description |
 |-------|------|-------------|

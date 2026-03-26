@@ -3,12 +3,39 @@
   "$id": "Notification",
   "title": "Notification",
   "description": "Fired for system notifications.",
-  "allOf": [{ "$ref": "_common.json" }],
   "properties": {
-    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
-    "message":           { "type": "string", "description": "Notification message text." },
-    "notification_type": { "type": "string", "description": "Type of notification." }
+    "cwd": {
+      "type": "string",
+      "description": "Working directory of the session."
+    },
+    "hook_event_name": {
+      "type": "string",
+      "description": "Name of the event (e.g. SessionStart)."
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Unique session identifier."
+    },
+    "transcript_path": {
+      "type": "string",
+      "description": "Path to the session transcript JSONL file."
+    },
+    "message": {
+      "type": "string",
+      "description": "Notification message text."
+    },
+    "notification_type": {
+      "type": "string",
+      "description": "Type of notification."
+    }
   },
-  "required": ["message", "notification_type"],
+  "required": [
+    "cwd",
+    "hook_event_name",
+    "session_id",
+    "transcript_path",
+    "message",
+    "notification_type"
+  ],
   "additionalProperties": false
 }

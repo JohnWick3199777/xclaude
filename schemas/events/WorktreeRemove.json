@@ -3,10 +3,33 @@
   "$id": "WorktreeRemove",
   "title": "WorktreeRemove",
   "description": "Fired when a git worktree is removed.",
-  "allOf": [{ "$ref": "_common.json" }],
   "properties": {
-    "cwd": true, "hook_event_name": true, "session_id": true, "transcript_path": true,
-    "worktree_path": { "type": "string", "description": "Path to the removed worktree." }
+    "cwd": {
+      "type": "string",
+      "description": "Working directory of the session."
+    },
+    "hook_event_name": {
+      "type": "string",
+      "description": "Name of the event (e.g. SessionStart)."
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Unique session identifier."
+    },
+    "transcript_path": {
+      "type": "string",
+      "description": "Path to the session transcript JSONL file."
+    },
+    "worktree_path": {
+      "type": "string",
+      "description": "Path to the removed worktree."
+    }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "required": [
+    "cwd",
+    "hook_event_name",
+    "session_id",
+    "transcript_path"
+  ]
 }
