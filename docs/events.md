@@ -123,7 +123,7 @@ Fired when an agent finishes (either completes or errors out).
   "parent_agent_id": null,
   "timestamp": "2026-04-01T10:04:55.000Z",
   "duration_ms": 294000,
-  "status": "completed",
+  "status": "Completed",
   "context": {
     "files_read":    ["src/auth/login.ts", "src/auth/session.ts"],
     "files_written": ["src/auth/login.ts"],
@@ -133,7 +133,7 @@ Fired when an agent finishes (either completes or errors out).
 }
 ```
 
-`status` is one of: `completed` | `error` | `cancelled`
+`status` is one of: `Completed` | `Error` | `Cancelled`
 
 ---
 
@@ -166,14 +166,14 @@ Fired when a tool call returns.
   "timestamp": "2026-04-01T10:01:15.220Z",
   "duration_ms": 220,
   "tool": "Edit",
-  "status": "success",
+  "status": "Success",
   "context": {
     "files_written": ["src/auth/login.ts"]
   }
 }
 ```
 
-`status` is one of: `success` | `error` | `blocked`
+`status` is one of: `Success` | `Error` | `Blocked`
 
 ---
 
