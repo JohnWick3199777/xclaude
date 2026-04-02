@@ -101,21 +101,49 @@ pub fn run(clients: &Clients, child: &mut std::process::Child, args: &[String]) 
         }
     };
 
+    let session_id = file.session_id.clone();
+    let agent_id = format!("{session_id}-agent-0");
+    let started_at = epoch_ms_to_iso(file.started_at);
+
     // session.start
     emit(clients, &ev::session_start(
-        file.session_id.clone(),
-        epoch_ms_to_iso(file.started_at),
+        session_id.clone(),
+        started_at.clone(),
         file.cwd.clone(),
         model,
         flags,
     ));
 
+    // agent.start — root agent, lifetime matches the session
+    emit(clients, &ev::agent_start(
+        session_id.clone(),
+        agent_id.clone(),
+        None,
+        started_at,
+        file.cwd,
+        String::new(),
+    ));
+
     let exit_code = child.wait().map(|s| s.code().unwrap_or(-1)).unwrap_or(-1);
     let duration_ms = now_ms().saturating_sub(spawn_ms);
 
+    // agent.end
+    emit(clients, &ev::agent_end(
+        session_id.clone(),
+        agent_id,
+        None,
+        now_iso(),
+        duration_ms,
+        ev::AgentStatus::Completed,
+        vec![],
+        vec![],
+        0,
+        TokenUsage { input: 0, output: 0 },
+    ));
+
     // session.end
     emit(clients, &ev::session_end(
-        file.session_id,
+        session_id,
         now_iso(),
         duration_ms,
         exit_code,

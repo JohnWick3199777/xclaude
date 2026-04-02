@@ -18,14 +18,47 @@ consumer
    |  unix socket (json-rpc 2.0)
    |
 xclaude
+   |  \
+   |   +-- hook receiver socket (unix, per-process)
+   |         ^
+   |         | hook payloads (JSON on stdin, forwarded by python one-liner)
    |
    +-- launches --> claude (subprocess)
                        |
-                       +-- hooks
+                       +-- hooks  <-- injected via --settings on every launch
                        +-- stdout / stderr
                        +-- transcript files
                        +-- sqlite databases
 ```
+
+## Hook injection
+
+xclaude always injects all available Claude Code hooks. On startup it:
+
+1. Binds a per-process hook receiver socket at `/tmp/xclaude-hook-<pid>.sock`.
+2. Writes a temporary `settings.json` that registers hooks for every lifecycle
+   event (`PreToolUse`, `PostToolUse`, `SubagentStart`, `SubagentStop`).
+3. Passes `--settings <tmp-path>` to `claude` so the hooks are merged with any
+   existing user/project settings.
+
+Each hook command is a small Python one-liner that reads the hook payload from
+stdin and forwards it to the hook receiver socket:
+
+```
+python3 -c "import socket,sys; s=socket.socket(socket.AF_UNIX); \
+    s.connect('/tmp/xclaude-hook-<pid>.sock'); \
+    s.sendall(sys.stdin.buffer.read()); s.close()"
+```
+
+The receiver translates hook payloads into xclaude events and broadcasts them
+over the main consumer socket. Hook events map to xclaude events as follows:
+
+| Claude hook     | xclaude event |
+|-----------------|---------------|
+| `PreToolUse`    | `tool.start`  |
+| `PostToolUse`   | `tool.end`    |
+| `SubagentStart` | `agent.start` |
+| `SubagentStop`  | `agent.end`   |
 
 ## Communication
 
