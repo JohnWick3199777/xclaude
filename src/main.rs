@@ -1,3 +1,4 @@
+pub mod _events;
 pub mod events;
 pub mod hooks;
 pub mod session;
